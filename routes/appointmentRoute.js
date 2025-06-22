@@ -16,7 +16,7 @@ import {
 const router = express.Router();
 
 // User routes
-router.post("/schedule", protect, scheduleViewing);  // Add protect middleware
+router.post("/schedule", scheduleViewing);  // Add protect middleware
 router.get("/user", getAppointmentsByUser);
 router.put("/cancel/:id", cancelAppointment);
 router.put("/feedback/:id", submitAppointmentFeedback);

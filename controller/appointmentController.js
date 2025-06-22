@@ -17,7 +17,7 @@ const formatRecentProperties = (properties) => {
 const formatRecentAppointments = (appointments) => {
   return appointments.map(appointment => ({
     type: 'appointment',
-    description: `${appointment.userId.name} scheduled viewing for ${appointment.propertyId.title}`,
+    description: `${appointment.name} scheduled viewing for ${appointment.propertyId.title}`,
     timestamp: appointment.createdAt
   }));
 };
@@ -76,7 +76,7 @@ const getRecentActivity = async () => {
         .sort({ createdAt: -1 })
         .limit(5)
         .populate('propertyId', 'title')
-        .populate('userId', 'name')
+        .populate('name')
     ]);
 
     return [
@@ -169,7 +169,6 @@ export const getAllAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find()
       .populate('propertyId', 'title location')
-      .populate('userId', 'name email')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -193,7 +192,7 @@ export const updateAppointmentStatus = async (req, res) => {
       appointmentId,
       { status },
       { new: true }
-    ).populate('propertyId userId');
+    ).populate('propertyId');
 
     if (!appointment) {
       return res.status(404).json({
@@ -205,12 +204,16 @@ export const updateAppointmentStatus = async (req, res) => {
     // Send email notification
     const mailOptions = {
       from: process.env.EMAIL,
-      to: appointment.userId.email,
+      to: appointment.email,
       subject: `Viewing Appointment ${status.charAt(0).toUpperCase() + status.slice(1)} - BuildEstate`,
       html: getEmailTemplate(appointment, status)
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
 
     res.json({
       success: true,
@@ -229,12 +232,12 @@ export const updateAppointmentStatus = async (req, res) => {
 // Add scheduling functionality
 export const scheduleViewing = async (req, res) => {
   try {
-    const { propertyId, date, time, notes } = req.body;
+    const { propertyId, date, time, notes, name, email, phone } = req.body;
     
     // req.user is set by the protect middleware
     
 
-    const userId = req.user._id;
+   
 
     // Check if property exists
     const property = await Property.findById(propertyId);
@@ -262,25 +265,20 @@ export const scheduleViewing = async (req, res) => {
 
     const appointment = new Appointment({
       propertyId,
-      userId,
       date,
       time,
       notes,
+      name,
+      email,
+      phone,
       status: 'pending'
     });
 
     await appointment.save();
-    await appointment.populate(['propertyId', 'userId']);
+    await appointment.populate(['propertyId']);
 
     // Send confirmation email
-    const mailOptions = {
-      from: process.env.EMAIL,
-      to: req.user.email,
-      subject: "Viewing Scheduled - BuildEstate",
-      html: getSchedulingEmailTemplate(appointment, date, time, notes)
-    };
-
-    await transporter.sendMail(mailOptions);
+   
 
     res.status(201).json({
       success: true,
@@ -302,7 +300,7 @@ export const cancelAppointment = async (req, res) => {
     const appointmentId = req.params.id;
     const appointment = await Appointment.findById(appointmentId)
       .populate('propertyId', 'title')
-      .populate('userId', 'email');
+      .populate('email');
 
     if (!appointment) {
       return res.status(404).json({

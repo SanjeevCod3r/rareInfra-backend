@@ -164,7 +164,6 @@ export const getAllAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find()
       .populate("propertyId", "title location")
-      .populate("userId", "name email")
       .sort({ createdAt: -1 });
 
     res.json({

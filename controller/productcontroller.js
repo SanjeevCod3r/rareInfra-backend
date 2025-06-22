@@ -1,32 +1,42 @@
-import fs from "fs";
-import imagekit from "../config/imagekit.js";
-import Property from "../models/propertymodel.js";
+import fs from 'fs';
+import imagekit from '../config/imagekit.js';
+import Property from '../models/propertymodel.js';
 
 const addproperty = async (req, res) => {
     try {
-        const { title, location, price, beds, baths, sqft, type, availability, description, amenities,phone } = req.body;
-
-        const image1 = req.files.image1 && req.files.image1[0];
-        const image2 = req.files.image2 && req.files.image2[0];
-        const image3 = req.files.image3 && req.files.image3[0];
-        const image4 = req.files.image4 && req.files.image4[0];
-
-        const images = [image1, image2, image3, image4].filter((item) => item !== undefined);
-
-        // Upload images to ImageKit and delete after upload
-        const imageUrls = await Promise.all(
-            images.map(async (item) => {
-                const result = await imagekit.upload({
-                    file: fs.readFileSync(item.path),
-                    fileName: item.originalname,
-                    folder: "Property",
-                });
-                fs.unlink(item.path, (err) => {
-                    if (err) console.log("Error deleting the file: ", err);
-                });
-                return result.url;
-            })
+        const { title, location, price, beds, baths, sqft, type, availability, description, amenities, phone,affordability } = req.body;
+        
+        // Handle images
+        const imageUrls = [];
+        const imageFields = ['image1', 'image2', 'image3', 'image4'];
+        
+        // Get all image files
+        const allFiles = Object.entries(req.files || {}).flatMap(([key, files]) => 
+            imageFields.includes(key) ? (Array.isArray(files) ? files : [files]) : []
         );
+
+        for (const image of allFiles) {
+            const result = await imagekit.upload({
+                file: fs.readFileSync(image.path),
+                fileName: image.originalname,
+                folder: "Property",
+            });
+            fs.unlink(image.path, (err) => {
+                if (err) console.log("Error deleting the file: ", err);
+            });
+            imageUrls.push(result.url);
+        }
+
+        // Parse amenities if they're in string format
+        let parsedAmenities = amenities;
+        if (typeof amenities === 'string') {
+            try {
+                parsedAmenities = JSON.parse(amenities.replace(/'/g, '"'));
+            } catch (err) {
+                console.log("Error parsing amenities:", err);
+                parsedAmenities = [];
+            }
+        }
 
         // Create a new product
         const product = new Property({
@@ -39,9 +49,10 @@ const addproperty = async (req, res) => {
             type,
             availability,
             description,
-            amenities,
+            amenities: parsedAmenities,
             image: imageUrls,
-            phone
+            phone,
+            affordability
         });
 
         // Save the product to the database
@@ -79,54 +90,56 @@ const removeproperty = async (req, res) => {
 
 const updateproperty = async (req, res) => {
     try {
-        const { id, title, location, price, beds, baths, sqft, type, availability, description, amenities,phone } = req.body;
+        const { id, title, location, price, beds, baths, sqft, type, availability, description, phone, amenities, existingImages,affordability } = req.body;
 
         const property = await Property.findById(id);
         if (!property) {
-            console.log("Property not found with ID:", id); // Debugging line
+            console.log("Property not found with ID:", id);
             return res.status(404).json({ message: "Property not found", success: false });
         }
 
-        if (!req.files) {
-            // No new images provided
-            property.title = title;
-            property.location = location;
-            property.price = price;
-            property.beds = beds;
-            property.baths = baths;
-            property.sqft = sqft;
-            property.type = type;
-            property.availability = availability;
-            property.description = description;
-            property.amenities = amenities;
-            property.phone = phone;
-            // Keep existing images
-            await property.save();
-            return res.json({ message: "Property updated successfully", success: true });
-        }
+        // Handle existing images
+        const existingUrls = existingImages ? JSON.parse(existingImages) : property.image;
 
-        const image1 = req.files.image1 && req.files.image1[0];
-        const image2 = req.files.image2 && req.files.image2[0];
-        const image3 = req.files.image3 && req.files.image3[0];
-        const image4 = req.files.image4 && req.files.image4[0];
-
-        const images = [image1, image2, image3, image4].filter((item) => item !== undefined);
-
-        // Upload images to ImageKit and delete after upload
-        const imageUrls = await Promise.all(
-            images.map(async (item) => {
-                const result = await imagekit.upload({
-                    file: fs.readFileSync(item.path),
-                    fileName: item.originalname,
-                    folder: "Property",
-                });
-                fs.unlink(item.path, (err) => {
-                    if (err) console.log("Error deleting the file: ", err);
-                });
-                return result.url;
-            })
+        // Handle new images
+        const imageUrls = [];
+        const imageFields = ['image1', 'image2', 'image3', 'image4'];
+        
+        // Get all image files
+        const allFiles = Object.entries(req.files || {}).flatMap(([key, files]) => 
+            imageFields.includes(key) ? (Array.isArray(files) ? files : [files]) : []
         );
 
+        // Upload new images
+        for (const image of allFiles) {
+            const result = await imagekit.upload({
+                file: fs.readFileSync(image.path),
+                fileName: image.originalname,
+                folder: "Property",
+            });
+            fs.unlink(image.path, (err) => {
+                if (err) console.log("Error deleting the file: ", err);
+            });
+            imageUrls.push(result.url);
+        }
+
+        // Combine existing and new images
+        const allImageUrls = [...existingUrls, ...imageUrls];
+        // Ensure we don't exceed 4 images
+        const finalImages = allImageUrls.slice(0, 4);
+
+        // Parse amenities if they're in string format
+        let parsedAmenities = amenities;
+        if (typeof amenities === 'string') {
+            try {
+                parsedAmenities = JSON.parse(amenities.replace(/'/g, '"'));
+            } catch (err) {
+                console.log("Error parsing amenities:", err);
+                parsedAmenities = [];
+            }
+        }
+
+        // Update property fields
         property.title = title;
         property.location = location;
         property.price = price;
@@ -136,30 +149,32 @@ const updateproperty = async (req, res) => {
         property.type = type;
         property.availability = availability;
         property.description = description;
-        property.amenities = amenities;
-        property.image = imageUrls;
         property.phone = phone;
+        property.amenities = parsedAmenities;
+        property.image = finalImages;
+        property.affordability = affordability;
 
         await property.save();
-        res.json({ message: "Property updated successfully", success: true });
+        
+        // Return success response
+        return res.json({ message: "Property updated successfully", success: true });
     } catch (error) {
-        console.log("Error updating product: ", error);
-        res.status(500).json({ message: "Server Error", success: false });
+        console.error("Error updating property:", error);
+        return res.status(500).json({ message: "Error updating property", success: false });
     }
 };
 
 const singleproperty = async (req, res) => {
     try {
-        const { id } = req.params;
-        const property = await Property.findById(id);
+        const property = await Property.findById(req.params.id);
         if (!property) {
             return res.status(404).json({ message: "Property not found", success: false });
         }
-        res.json({ property, success: true });
+        return res.json({ property, success: true });
     } catch (error) {
-        console.log("Error fetching property:", error);
-        res.status(500).json({ message: "Server Error", success: false });
+        console.error("Error fetching single property:", error);
+        return res.status(500).json({ message: "Server Error", success: false });
     }
 };
 
-export { addproperty, listproperty, removeproperty, updateproperty , singleproperty};
+export { addproperty, listproperty, removeproperty, updateproperty, singleproperty };

@@ -6,11 +6,6 @@ const appointmentSchema = new mongoose.Schema({
     ref: 'Property',
     required: true
   },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
   date: {
     type: Date,
     required: true
@@ -28,10 +23,17 @@ const appointmentSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  meetingPlatform: {
+  phone: {
     type: String,
-    enum: ['zoom', 'google-meet', 'teams', 'other'],
-    default: 'other'
+    trim: true
+  },
+  name: {
+    type: String,
+    trim: true
+  },
+  email: {
+    type: String,
+    trim: true
   },
   notes: {
     type: String
@@ -56,7 +58,6 @@ const appointmentSchema = new mongoose.Schema({
 });
 
 // Add indexes for better query performance
-appointmentSchema.index({ userId: 1, date: -1 });
 appointmentSchema.index({ propertyId: 1, date: -1 });
 appointmentSchema.index({ status: 1 });
 

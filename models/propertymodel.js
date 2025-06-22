@@ -19,11 +19,11 @@ const propertySchema = new mongoose.Schema({
  },
   beds: {
     type: Number,
-    required: true,
+    required: false, // Change
   },
   baths: {
     type: Number,
-    required: true,
+    required: false, // Change
   },
   sqft: {
     type: Number,
@@ -46,6 +46,10 @@ const propertySchema = new mongoose.Schema({
     required: true,
   },
   phone: {
+    type: String,
+    required: true,
+  },
+affordability: {
     type: String,
     required: true,
   },

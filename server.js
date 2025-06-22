@@ -1,12 +1,14 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
+import { default as mongoose } from 'mongoose';
+import dotenv from 'dotenv';
+dotenv.config();
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import compression from 'compression';
 import connectdb from './config/mongodb.js';
 import { trackAPIStats } from './middleware/statsMiddleware.js';
-import propertyrouter from './routes/ProductRouter.js';
+import { default as propertyrouter } from './routes/ProductRouter.js';
 import userrouter from './routes/UserRoute.js';
 import formrouter from './routes/formrouter.js';
 import newsrouter from './routes/newsRoute.js';
