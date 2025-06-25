@@ -383,7 +383,7 @@ export const updateAppointmentMeetingLink = async (req, res) => {
       appointmentId,
       { meetingLink },
       { new: true }
-    ).populate('propertyId userId');
+    ).populate('propertyId');
 
     if (!appointment) {
       return res.status(404).json({
@@ -395,7 +395,7 @@ export const updateAppointmentMeetingLink = async (req, res) => {
     // Send email notification with meeting link
     const mailOptions = {
       from: process.env.EMAIL,
-      to: appointment.userId.email,
+      to: appointment.email,
       subject: "Meeting Link Updated - BuildEstate",
       html: `
         <div style="max-width: 600px; margin: 20px auto; font-family: 'Arial', sans-serif; line-height: 1.6;">

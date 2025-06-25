@@ -43,13 +43,17 @@ export const getAdminStats = async (req, res) => {
       getViewsData(),
     ]);
 
+    const appointments = await Appointment.find({ status: "pending" })
+      .populate('propertyId', 'title location');
+
+      console.log(appointments);
     res.json({
       success: true,
       stats: {
         totalProperties,
         activeListings,
         totalUsers,
-        pendingAppointments,
+        pendingAppointments: appointments.length, // updated
         recentActivity,
         viewsData,
       },
@@ -63,6 +67,7 @@ export const getAdminStats = async (req, res) => {
   }
 };
 
+
 const getRecentActivity = async () => {
   try {
     const recentProperties = await Property.find()
@@ -74,11 +79,11 @@ const getRecentActivity = async () => {
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("propertyId", "title")
-      .populate("userId", "name");
+      .populate("name");
 
     // Filter out appointments with missing user or property data
     const validAppointments = recentAppointments.filter(
-      (appointment) => appointment.userId && appointment.propertyId
+      (appointment) => appointment.propertyId
     );
 
     return [

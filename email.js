@@ -143,9 +143,9 @@ export const getEmailTemplate = (appointment, status) => `
         <p style="margin: 0; color: #4b5563;">
           Our support team is available 24/7 to assist you:
           <br>
-          📧 <a href="mailto:support@buildestate.com" style="color: #2563eb; text-decoration: none;">support@buildestate.com</a>
+          📧 <a href="mailto:support@rareinfra.com" style="color: #2563eb; text-decoration: none;">support@rareinfra.com</a>
           <br>
-          📞 <a href="tel:+1234567890" style="color: #2563eb; text-decoration: none;">+1 (234) 567-890</a>
+          📞 <a href="tel:+917827529358" style="color: #2563eb; text-decoration: none;">+91 7827529358</a>
         </p>
       </div>
     </div>
@@ -153,10 +153,10 @@ export const getEmailTemplate = (appointment, status) => `
     <!-- Footer -->
     <div style="text-align: center; margin-top: 30px;">
       <p style="color: #6b7280; font-size: 14px;">
-        © ${new Date().getFullYear()} BuildEstate. All rights reserved.
+        © ${new Date().getFullYear()} RareInfra. All rights reserved.
       </p>
       <div style="margin-top: 10px;">
-        <a href="https://real-estate-website-sepia-two.vercel.app" style="color: #2563eb; text-decoration: none; margin: 0 10px;">Website</a>
+        <a href="https://www.rareinfra.com/" style="color: #2563eb; text-decoration: none; margin: 0 10px;">Website</a>
         <a href="#" style="color: #2563eb; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
         <a href="#" style="color: #2563eb; text-decoration: none; margin: 0 10px;">Terms of Service</a>
       </div>
@@ -389,10 +389,10 @@ export const getPasswordResetTemplate = (resetUrl) => `
     <!-- Footer -->
     <div style="text-align: center; margin-top: 30px;">
       <p style="color: #6b7280; font-size: 14px;">
-        © ${new Date().getFullYear()} BuildEstate. All rights reserved.
+        © ${new Date().getFullYear()} RareInfra. All rights reserved.
       </p>
       <div style="margin-top: 10px;">
-        <a href="https://real-estate-website-sepia-two.vercel.app" style="color: #2563eb; text-decoration: none; margin: 0 10px;">Website</a>
+        <a href="https://www.rareinfra.com/" style="color: #2563eb; text-decoration: none; margin: 0 10px;">Website</a>
         <a href="#" style="color: #2563eb; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
         <a href="#" style="color: #2563eb; text-decoration: none; margin: 0 10px;">Terms of Service</a>
       </div>
